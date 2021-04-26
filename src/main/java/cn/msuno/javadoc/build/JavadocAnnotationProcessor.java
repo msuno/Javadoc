@@ -21,10 +21,12 @@ import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
-import com.alibaba.fastjson.JSONObject;
-
+import cn.hutool.json.JSONObject;
 import cn.msuno.javadoc.annotation.RetainJavadoc;
 
+/**
+ * @author msuno
+ */
 public class JavadocAnnotationProcessor extends AbstractProcessor {
     
     private static final String PACKAGES_OPTION = "javadoc.packages";
@@ -35,17 +37,17 @@ public class JavadocAnnotationProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
         
         this.jsonJavadocBuilder = new JsonJavadocBuilder(processingEnv);
-    
+        
         final Map<String, String> options = processingEnv.getOptions();
         final String packagesOption = options.get(PACKAGES_OPTION);
-    
+        
         // Retain Javadoc for classes that match this predicate
         final PackageFilter packageFilter =
                 packagesOption == null ? new PackageFilter() : new PackageFilter(packagesOption);
-    
+        
         // Make sure each element only gets processed once.
         final Set<Element> alreadyProcessed = new HashSet<>();
-    
+        
         // If retaining Javadoc for all packages, the @RetainJavadoc annotation is redundant.
         // Otherwise, make sure annotated classes have their Javadoc retained regardless of package.
         if (!packageFilter.allowAllPackages()) {
@@ -57,19 +59,19 @@ public class JavadocAnnotationProcessor extends AbstractProcessor {
                 }
             }
         }
-    
+        
         for (Element e : roundEnvironment.getRootElements()) {
             if (packageFilter.test(e)) {
                 generateJavadoc(e, alreadyProcessed);
             }
         }
-    
+        
         return false;
     }
     
     private static boolean isRetainJavadocAnnotation(TypeElement annotation) {
-        return annotation.getQualifiedName().toString().equals(RetainJavadoc.class.getName())
-                || annotation.getAnnotation(RetainJavadoc.class) != null;
+        return annotation.getQualifiedName().toString().equals(RetainJavadoc.class.getName()) ||
+                annotation.getAnnotation(RetainJavadoc.class) != null;
     }
     
     private void generateJavadoc(Element element, Set<Element> alreadyProcessed) {

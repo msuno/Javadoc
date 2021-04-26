@@ -3,16 +3,15 @@ package cn.msuno.javadoc.docs;
 import static cn.msuno.javadoc.build.RuntimeJavadocHelper.javadocResourceSuffix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import com.alibaba.fastjson.JSONObject;
-
+import cn.hutool.core.io.IoUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import cn.msuno.javadoc.parse.JsonJavadocReader;
 
 /**
@@ -30,7 +29,6 @@ public class RuntimeJavadoc {
      * <p>
      * The return value is always non-null. If no Javadoc is available, the returned object's
      * {@link BaseJavadoc#isEmpty isEmpty()} method will return {@code true}.
-     *
      * @param clazz the class whose Javadoc you want to retrieve
      * @return the Javadoc of the given class
      */
@@ -43,7 +41,6 @@ public class RuntimeJavadoc {
      * <p>
      * The return value is always non-null. If no Javadoc is available, the returned object's
      * {@link BaseJavadoc#isEmpty isEmpty()} method will return {@code true}.
-     *
      * @param qualifiedClassName the fully qualified name of the class whose Javadoc you want to retrieve
      * @return the Javadoc of the given class
      */
@@ -56,9 +53,8 @@ public class RuntimeJavadoc {
      * <p>
      * The return value is always non-null. If no Javadoc is available, the returned object's
      * {@link BaseJavadoc#isEmpty isEmpty()} method will return {@code true}.
-     *
      * @param qualifiedClassName the fully qualified name of the class whose Javadoc you want to retrieve
-     * @param classLoader        the class loader to use to find the Javadoc resource file
+     * @param classLoader the class loader to use to find the Javadoc resource file
      * @return the Javadoc of the given class
      */
     public static ClassJavadoc getJavadoc(String qualifiedClassName, ClassLoader classLoader) {
@@ -75,9 +71,8 @@ public class RuntimeJavadoc {
      * <p>
      * The return value is always non-null. If no Javadoc is available, the returned object's
      * {@link BaseJavadoc#isEmpty isEmpty()} method will return {@code true}.
-     *
      * @param qualifiedClassName the fully qualified name of the class whose Javadoc you want to retrieve
-     * @param loader             the class object to use to find the Javadoc resource file
+     * @param loader the class object to use to find the Javadoc resource file
      * @return the Javadoc of the given class
      */
     public static ClassJavadoc getJavadoc(String qualifiedClassName, Class loader) {
@@ -97,13 +92,9 @@ public class RuntimeJavadoc {
         if (is == null) {
             return ClassJavadoc.createEmpty(qualifiedClassName);
         }
-        
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(is, UTF_8))) {
-            String str = "";
-            while (r.ready()) { str += r.readLine(); }
-            JSONObject json = JSONObject.parseObject(str);
-            return JsonJavadocReader.readClassJavadoc(qualifiedClassName, json);
-        }
+        final String read = IoUtil.read(is, UTF_8);
+        JSONObject json = JSONUtil.parseObj(read);
+        return JsonJavadocReader.readClassJavadoc(qualifiedClassName, json);
     }
     
     /**
@@ -116,7 +107,6 @@ public class RuntimeJavadoc {
      * with the correct documentation. If the client code's purpose is to loop through all methods doc, prefer using
      * {@link #getJavadoc(Class)} (or one of its overloads), and calling {@link ClassJavadoc#getMethods()} on the
      * returned class doc to retrieve method docs.
-     *
      * @param method the method whose Javadoc you want to retrieve
      * @return the given method's Javadoc
      */
@@ -144,7 +134,6 @@ public class RuntimeJavadoc {
      * with the correct documentation. If the client code's purpose is to loop through all fields doc, prefer using
      * {@link #getJavadoc(Class)} (or one of its overloads), and calling {@link ClassJavadoc#getFields()} on the
      * returned class doc to retrieve field docs.
-     *
      * @param field the field whose Javadoc you want to retrieve
      * @return the given field's Javadoc
      */
@@ -163,7 +152,6 @@ public class RuntimeJavadoc {
      * name with the correct documentation. If the client code's purpose is to loop through all enum constants docs,
      * prefer using {@link #getJavadoc(Class)} (or one of its overloads), and calling
      * {@link ClassJavadoc#getEnumConstants()} on the returned class doc to retrieve enum constant docs.
-     *
      * @param enumValue the enum constant whose Javadoc you want to retrieve
      * @return the given enum constant's Javadoc
      */

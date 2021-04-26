@@ -13,9 +13,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import cn.msuno.javadoc.docs.ClassJavadoc;
 import cn.msuno.javadoc.docs.FieldJavadoc;
 import cn.msuno.javadoc.docs.MethodJavadoc;
@@ -25,7 +25,8 @@ public class JsonJavadocReader {
     public static ClassJavadoc readClassJavadoc(String qualifiedClassName, JSONObject json) {
         String className = qualifiedClassName.replace("$", ".");
         List<FieldJavadoc> fields = readFieldDocs(qualifiedClassName, json.getJSONArray(fieldsFieldName()));
-        List<FieldJavadoc> enumConstants = readFieldDocs(qualifiedClassName, json.getJSONArray(enumConstantsFieldName()));
+        List<FieldJavadoc> enumConstants = readFieldDocs(qualifiedClassName,
+                json.getJSONArray(enumConstantsFieldName()));
         List<MethodJavadoc> methods = readMethodDocs(qualifiedClassName, json.getJSONArray(methodsFieldName()));
         String classJavadocString = json.getOrDefault(elementDocFieldName(), "").toString();
         return JavadocParser.parseClassJavadoc(className, classJavadocString, fields, enumConstants, methods);
@@ -37,7 +38,7 @@ public class JsonJavadocReader {
             return Collections.emptyList();
         }
         List<FieldJavadoc> fields = new ArrayList<>(fieldsValue.size());
-        for (int i = 0 ; i < fieldsValue.size(); i ++) {
+        for (int i = 0; i < fieldsValue.size(); i++) {
             fields.add(readFieldDoc(owningClass, fieldsValue.getJSONObject(i)));
         }
         return fields;
@@ -52,16 +53,16 @@ public class JsonJavadocReader {
     
     private static List<MethodJavadoc> readMethodDocs(String owningClass, JSONArray methodsValue) {
         List<MethodJavadoc> methods = new ArrayList<>(methodsValue.size());
-        for (int i = 0; i < methodsValue.size(); i ++) {
+        for (int i = 0; i < methodsValue.size(); i++) {
             methods.add(readMethodDoc(owningClass, methodsValue.getJSONObject(i)));
         }
         return methods;
     }
     
     private static MethodJavadoc readMethodDoc(String owningClass, JSONObject methodValue) {
-        String methodName = methodValue.getString(elementNameFieldName());
+        String methodName = methodValue.getStr(elementNameFieldName());
         List<String> paramTypes = readParamTypes(methodValue.getJSONArray(paramTypesFieldName()));
-        String methodDoc = methodValue.getString(elementDocFieldName());
+        String methodDoc = methodValue.getStr(elementDocFieldName());
         return JavadocParser.parseMethodJavadoc(owningClass, methodName, paramTypes, methodDoc);
     }
     

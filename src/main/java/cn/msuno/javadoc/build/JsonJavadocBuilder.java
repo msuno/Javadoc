@@ -26,11 +26,13 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
-import org.apache.commons.lang3.StringUtils;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-
+/**
+ * @author msuno
+ */
 public class JsonJavadocBuilder {
     
     private final ProcessingEnvironment processingEnv;
@@ -42,8 +44,8 @@ public class JsonJavadocBuilder {
     JSONObject getClassJavadocAsJsonOrNull(TypeElement classElement) {
         String classDoc = processingEnv.getElementUtils().getDocComment(classElement);
         
-        if (StringUtils.isBlank(classDoc)) {
-            classDoc = "";
+        if (StrUtil.isBlank(classDoc)) {
+            classDoc = StrUtil.EMPTY;
         }
         
         Map<ElementKind, List<Element>> children = new HashMap<>();
@@ -59,23 +61,23 @@ public class JsonJavadocBuilder {
         List<Element> enclosedEnumConstants = defaultIfNull(children.get(ENUM_CONSTANT), emptyList);
         List<Element> enclosedMethods = defaultIfNull(children.get(METHOD), emptyList);
         
-        JSONArray fieldDocs = getJavadocsAsJson(enclosedFields, new FieldJavadocAsJson());
-        JSONArray enumConstantDocs = getJavadocsAsJson(enclosedEnumConstants, new FieldJavadocAsJson());
-        JSONArray methodDocs = getJavadocsAsJson(enclosedMethods, new MethodJavadocAsJson());
+        JSONArray fieldDocs = getJavadocAsJson(enclosedFields, new FieldJavadocAsJson());
+        JSONArray enumConstantDocs = getJavadocAsJson(enclosedEnumConstants, new FieldJavadocAsJson());
+        JSONArray methodDocs = getJavadocAsJson(enclosedMethods, new MethodJavadocAsJson());
         
-        if (StringUtils.isBlank(classDoc) && fieldDocs.isEmpty() && enumConstantDocs.isEmpty() && methodDocs.isEmpty()) {
+        if (StrUtil.isBlank(classDoc) && fieldDocs.isEmpty() && enumConstantDocs.isEmpty() && methodDocs.isEmpty()) {
             return null;
         }
         
         JSONObject json = new JSONObject();
-        json.put(elementDocFieldName(), classDoc);
-        json.put(fieldsFieldName(), fieldDocs);
-        json.put(enumConstantsFieldName(), enumConstantDocs);
-        json.put(methodsFieldName(), methodDocs);
+        json.set(elementDocFieldName(), classDoc);
+        json.set(fieldsFieldName(), fieldDocs);
+        json.set(enumConstantsFieldName(), enumConstantDocs);
+        json.set(methodsFieldName(), methodDocs);
         return json;
     }
     
-    private static JSONArray getJavadocsAsJson(List<Element> elements, ElementToJsonFunction createDoc) {
+    private static JSONArray getJavadocAsJson(List<Element> elements, ElementToJsonFunction createDoc) {
         JSONArray jsonArray = new JSONArray();
         for (Element e : elements) {
             JSONObject eMapped = createDoc.apply(e);
@@ -94,13 +96,13 @@ public class JsonJavadocBuilder {
         @Override
         public JSONObject apply(Element field) {
             String javadoc = processingEnv.getElementUtils().getDocComment(field);
-            if (StringUtils.isBlank(javadoc)) {
+            if (StrUtil.isBlank(javadoc)) {
                 return null;
             }
             JSONObject jsonDoc = new JSONObject();
-            jsonDoc.put(elementNameFieldName(), field.getSimpleName().toString());
-            jsonDoc.put(elementDocFieldName(), javadoc);
-            jsonDoc.put(elementTypeFieldName(), field.asType().toString());
+            jsonDoc.set(elementNameFieldName(), field.getSimpleName().toString());
+            jsonDoc.set(elementDocFieldName(), javadoc);
+            jsonDoc.set(elementTypeFieldName(), field.asType().toString());
             return jsonDoc;
         }
     }
@@ -111,14 +113,14 @@ public class JsonJavadocBuilder {
             assert method instanceof ExecutableElement;
             
             String methodJavadoc = processingEnv.getElementUtils().getDocComment(method);
-            if (StringUtils.isBlank(methodJavadoc)) {
+            if (StrUtil.isBlank(methodJavadoc)) {
                 return null;
             }
-    
+            
             JSONObject jsonDoc = new JSONObject();
-            jsonDoc.put(elementNameFieldName(), method.getSimpleName().toString());
-            jsonDoc.put(paramTypesFieldName(), getParamErasures((ExecutableElement) method));
-            jsonDoc.put(elementDocFieldName(), methodJavadoc);
+            jsonDoc.set(elementNameFieldName(), method.getSimpleName().toString());
+            jsonDoc.set(paramTypesFieldName(), getParamErasures((ExecutableElement) method));
+            jsonDoc.set(elementDocFieldName(), methodJavadoc);
             return jsonDoc;
         }
     }
